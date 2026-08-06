@@ -6,21 +6,21 @@ local LocalPlayer = Players.LocalPlayer
 local Nexus = env.Nexus
 local isCasting = false
 
-local function GetAndEquipRod()
+local function EquipAndGetRod()
     local char = LocalPlayer.Character
     if not char then return nil end
     
-    -- Verifica se já está com a vara equipada na mão
+    -- 1. Verifica se já está na mão
     local equipped = char:FindFirstChildOfClass("Tool")
     if equipped then return equipped end
     
-    -- Procura na mochila (Backpack) e puxa para o personagem
+    -- 2. Pega da mochila se estiver guardada
     local backpack = LocalPlayer:FindFirstChild("Backpack")
     if backpack then
         local tool = backpack:FindFirstChildOfClass("Tool")
         if tool then
             tool.Parent = char
-            task.wait(0.5) -- Tempo da animação de equipar
+            task.wait(0.4) -- Tempo para o braço do personagem segurar a ferramenta
             return tool
         end
     end
@@ -37,17 +37,17 @@ local function PerformCast()
     task.wait(Nexus.Config.RecastDelay)
     
     while Nexus.Config.Enabled and Nexus.Config.AutoCast and LocalPlayer:GetAttribute("Fishing") ~= true do
-        local rod = GetAndEquipRod()
+        local rod = EquipAndGetRod()
         
         if rod then
-            Nexus.Log("🎣 Vara encontrada! Ativando lançamento...")
+            Nexus.Log("🎣 Vara equipada! Lançando linha...")
             
-            -- O método mais seguro e nativo para ferramentas no Roblox
+            -- Ativa a ferramenta de forma oficial do Roblox
             pcall(function()
                 rod:Activate()
             end)
             
-            -- Aguarda até 3 segundos para ver se o jogo registrou que a isca caiu na água
+            -- Aguarda a confirmação de que a pesca iniciou (Até 3 segundos)
             local attempts = 0
             while attempts < 30 and LocalPlayer:GetAttribute("Fishing") ~= true do
                 task.wait(0.1)
@@ -55,11 +55,11 @@ local function PerformCast()
             end
             
             if LocalPlayer:GetAttribute("Fishing") ~= true then
-                Nexus.Log("⚠️ O lançamento falhou, tentando de novo...")
+                Nexus.Log("⚠️ A tentativa falhou, re-tentando...")
                 task.wait(1.5)
             end
         else
-            Nexus.Log("❌ Nenhuma vara de pesca na mão ou na mochila!")
+            Nexus.Log("❌ Nenhuma vara encontrada na mão ou inventário!")
             task.wait(2)
         end
     end
@@ -73,7 +73,6 @@ local attrConn = LocalPlayer:GetAttributeChangedSignal("Fishing"):Connect(functi
 end)
 table.insert(Nexus.Connections, attrConn)
 
--- Executa uma vez se já estiver desocupado ao injetar
 if LocalPlayer:GetAttribute("Fishing") == false then 
     task.spawn(PerformCast) 
 end
