@@ -10,7 +10,25 @@ local Input = Nexus.Input
 
 local isBreaking = false
 
--- Monitora os áudios do minigame de forma segura
+local function CheckBreakpointsFolder(fishingUI)
+    local bpFolder = fishingUI:FindFirstChild("FishingFrame") 
+        and fishingUI.FishingFrame:FindFirstChild("FishingRodMain") 
+        and fishingUI.FishingFrame.FishingRodMain:FindFirstChild("Breakpoints")
+    
+    if bpFolder then
+        local anyVisible = false
+        for _, bp in ipairs(bpFolder:GetChildren()) do
+            if bp:IsA("Frame") and bp.Visible then
+                anyVisible = true
+                break
+            end
+        end
+        return anyVisible
+    end
+    return false
+end
+
+-- Monitora os áudios do minigame com segurança
 local function MonitorAudioCues()
     local fishingUI = PlayerGui:FindFirstChild("FishingUI")
     if fishingUI then
@@ -31,7 +49,6 @@ local function MonitorAudioCues()
     end
 end
 
--- Mantém o estado sempre limpo quando os eventos do servidor disparam
 local FishingEvent = ReplicatedStorage:WaitForChild("Events"):WaitForChild("Fishing")
 local evtConn = FishingEvent.OnClientEvent:Connect(function(event)
     if event == "StartMinigame" then
@@ -44,7 +61,7 @@ local evtConn = FishingEvent.OnClientEvent:Connect(function(event)
 end)
 table.insert(Nexus.Connections, evtConn)
 
--- O Loop principal do Motor de Pesca
+-- Loop Frame-Perfect Inteligente
 local loopConn = RunService.Heartbeat:Connect(function()
     if not Nexus.Config.Enabled then 
         Input.ForceRelease()
@@ -58,10 +75,16 @@ local loopConn = RunService.Heartbeat:Connect(function()
         return
     end
 
-    MonitorAudioCues() -- Garante que estamos escutando
+    MonitorAudioCues()
 
-    -- Executa a Física
-    if isBreaking then
+    -- Verifica visualmente se ainda há breakpoints na tela. Se sumiram, força isBreaking = false!
+    local visualHasBP = CheckBreakpointsFolder(fishingUI)
+    if not visualHasBP then
+        isBreaking = false
+    end
+
+    -- Execução da Física
+    if isBreaking or visualHasBP then
         Input.SetHold(false)
         Input.FastClick()
     else
