@@ -1,6 +1,6 @@
 -- loader.lua
 local getgenv = getgenv or function() return shared end
-local GITHUB_REPO = "https://raw.githubusercontent.com/SEU_USUARIO/NexusHub/main/"
+local GITHUB_REPO = "https://raw.githubusercontent.com/KillerMax537/Nexus/main/"
 
 local function requireModule(path)
     local url = GITHUB_REPO .. path
