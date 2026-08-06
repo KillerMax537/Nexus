@@ -7,10 +7,10 @@ local Nexus = env.Nexus
 local Input = Nexus.Input
 local isCasting = false
 
+-- Puxa a vara para a mão
 local function EquipRod()
     local char = LocalPlayer.Character
     if not char then return false end
-    
     if char:FindFirstChildOfClass("Tool") then return true end
     
     local backpack = LocalPlayer:FindFirstChild("Backpack")
@@ -18,7 +18,7 @@ local function EquipRod()
         local tool = backpack:FindFirstChildOfClass("Tool")
         if tool then
             tool.Parent = char
-            task.wait(0.6) -- Animação de puxar a vara
+            task.wait(0.6) -- Animação de equipar
             return true
         end
     end
@@ -34,8 +34,10 @@ local function PerformCast()
     
     while Nexus.Config.Enabled and Nexus.Config.AutoCast and LocalPlayer:GetAttribute("Fishing") ~= true do
         if EquipRod() then
-            -- O jogo pede um clique na tela para arremessar
-            Input.Click()
+            Nexus.Log("🎣 Lançando isca...")
+            
+            -- Usa o clique 3D no centro da tela!
+            Input.WorldClick()
             
             local attempts = 0
             while attempts < 30 and LocalPlayer:GetAttribute("Fishing") ~= true do
@@ -44,9 +46,11 @@ local function PerformCast()
             end
             
             if LocalPlayer:GetAttribute("Fishing") ~= true then
-                task.wait(1.5)
+                Nexus.Log("⚠️ Clique não registrou, tentando novamente...")
+                task.wait(1)
             end
         else
+            Nexus.Log("❌ Pegue sua vara de pesca!")
             task.wait(2)
         end
     end
@@ -54,10 +58,14 @@ local function PerformCast()
 end
 
 local attrConn = LocalPlayer:GetAttributeChangedSignal("Fishing"):Connect(function()
-    if LocalPlayer:GetAttribute("Fishing") == false then task.spawn(PerformCast) end
+    if LocalPlayer:GetAttribute("Fishing") == false then 
+        task.spawn(PerformCast) 
+    end
 end)
 table.insert(Nexus.Connections, attrConn)
 
-if LocalPlayer:GetAttribute("Fishing") == false then task.spawn(PerformCast) end
+if LocalPlayer:GetAttribute("Fishing") == false then 
+    task.spawn(PerformCast) 
+end
 
 return true
