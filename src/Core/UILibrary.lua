@@ -5,6 +5,7 @@ local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 
 function Library:CreateWindow(title, subtitle)
+    -- Limpa a UI antiga se existir
     local old = CoreGui:FindFirstChild("NexusPremiumHub")
     if old then old:Destroy() end
 
@@ -28,7 +29,7 @@ function Library:CreateWindow(title, subtitle)
     Stroke.Color = Color3.fromRGB(45, 50, 75)
     Stroke.Thickness = 1.5
 
-    -- Dragging Logic
+    -- Lógica de arrastar a janela (Dragging)
     local dragging, dragInput, dragStart, startPos
     Main.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
@@ -45,7 +46,7 @@ function Library:CreateWindow(title, subtitle)
         end
     end)
 
-    -- Sidebar
+    -- Barra Lateral (Sidebar)
     local Sidebar = Instance.new("Frame", Main)
     Sidebar.Size = UDim2.new(0, 140, 1, 0)
     Sidebar.BackgroundColor3 = Color3.fromRGB(11, 12, 16)
@@ -69,14 +70,17 @@ function Library:CreateWindow(title, subtitle)
     TabListLayout.Padding = UDim.new(0, 5)
     TabListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 
+    -- Container das Páginas
     local Pages = Instance.new("Frame", Main)
     Pages.Size = UDim2.new(1, -140, 1, 0)
     Pages.Position = UDim2.new(0, 140, 0, 0)
     Pages.BackgroundTransparency = 1
 
-    function Window:CreateTab(name, icon)
+    -- Função para Criar Abas
+    function Window:CreateTab(name)
         local Tab = {}
         
+        -- Botão da Aba na Sidebar
         local TabBtn = Instance.new("TextButton", TabContainer)
         TabBtn.Size = UDim2.new(1, -20, 0, 32)
         TabBtn.BackgroundColor3 = Color3.fromRGB(11, 12, 16)
@@ -86,6 +90,7 @@ function Library:CreateWindow(title, subtitle)
         TabBtn.TextSize = 13
         Instance.new("UICorner", TabBtn).CornerRadius = UDim.new(0, 6)
 
+        -- Página de conteúdo da Aba
         local Page = Instance.new("CanvasGroup", Pages)
         Page.Size = UDim2.new(1, -20, 1, -30)
         Page.Position = UDim2.new(0, 10, 0, 15)
@@ -96,6 +101,7 @@ function Library:CreateWindow(title, subtitle)
         local PageLayout = Instance.new("UIListLayout", Page)
         PageLayout.Padding = UDim.new(0, 8)
 
+        -- Lógica de troca de Aba
         TabBtn.MouseButton1Click:Connect(function()
             if Window.CurrentTab == Tab then return end
             
@@ -117,7 +123,11 @@ function Library:CreateWindow(title, subtitle)
         Tab.Page = Page
         table.insert(Window.Tabs, Tab)
 
-        -- Criar componentes dentro da Aba
+        -- ==========================================
+        -- COMPONENTES DA ABA (TOGGLES E BOTÕES)
+        -- ==========================================
+
+        -- Criar Toggles (Interruptores ON/OFF)
         function Tab:AddToggle(text, state, callback)
             local ToggleFrame = Instance.new("Frame", Page)
             ToggleFrame.Size = UDim2.new(1, 0, 0, 40)
@@ -155,24 +165,58 @@ function Library:CreateWindow(title, subtitle)
                 callback(isEnabled)
             end)
         end
+
+        -- Criar Botões Simples (Apenas clique)
+        function Tab:AddButton(text, callback)
+            local BtnFrame = Instance.new("Frame", Page)
+            BtnFrame.Size = UDim2.new(1, 0, 0, 40)
+            BtnFrame.BackgroundColor3 = Color3.fromRGB(22, 24, 30)
+            Instance.new("UICorner", BtnFrame).CornerRadius = UDim.new(0, 6)
+
+            local ActionBtn = Instance.new("TextButton", BtnFrame)
+            ActionBtn.Size = UDim2.new(1, 0, 1, 0)
+            ActionBtn.BackgroundTransparency = 1
+            ActionBtn.Text = text
+            ActionBtn.TextColor3 = Color3.fromRGB(210, 215, 230)
+            ActionBtn.Font = Enum.Font.GothamMedium
+            ActionBtn.TextSize = 13
+
+            -- Efeitos visuais Premium (Hover)
+            ActionBtn.MouseEnter:Connect(function()
+                TweenService:Create(BtnFrame, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(35, 38, 48)}):Play()
+            end)
+            ActionBtn.MouseLeave:Connect(function()
+                TweenService:Create(BtnFrame, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(22, 24, 30)}):Play()
+            end)
+
+            -- Clique
+            ActionBtn.MouseButton1Click:Connect(function()
+                local ripple = TweenService:Create(BtnFrame, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(100, 120, 255)})
+                ripple:Play()
+                ripple.Completed:Wait()
+                TweenService:Create(BtnFrame, TweenInfo.new(0.3), {BackgroundColor3 = Color3.fromRGB(35, 38, 48)}):Play()
+                
+                callback()
+            end)
+        end
         
         return Tab
     end
 
+    -- Inicializa mostrando a primeira Aba
     function Window:Init()
         if #Window.Tabs > 0 then
-            -- Aciona o clique na primeira aba invisivelmente para iniciar
-            for _, conn in ipairs(getconnections(Window.Tabs[1].Btn.MouseButton1Click) or {}) do
-                conn.Function()
-            end
-            if not getconnections then -- Fallback if executor lacks getconnections
-                Window.Tabs[1].Btn.BackgroundColor3 = Color3.fromRGB(100, 120, 255)
-                Window.Tabs[1].Btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-                Window.Tabs[1].Page.Visible = true
-                Window.Tabs[1].Page.GroupTransparency = 0
-                Window.CurrentTab = Window.Tabs[1]
-            end
+            local firstTab = Window.Tabs[1]
+            firstTab.Btn.BackgroundColor3 = Color3.fromRGB(100, 120, 255)
+            firstTab.Btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+            firstTab.Page.Visible = true
+            firstTab.Page.GroupTransparency = 0
+            Window.CurrentTab = firstTab
         end
+    end
+
+    function Window:Destroy()
+        sg:Destroy()
     end
 
     return Window
