@@ -38,4 +38,6 @@ Tab:AddButton("Unload & Exit (Desligar)", function()
     env.Nexus = nil
 end)
 
+Tab:AddSlider("UI Scale", 0.5, 1.5, 1, function(val) Nexus.Window:SetScale(val) end)
+
 return true
