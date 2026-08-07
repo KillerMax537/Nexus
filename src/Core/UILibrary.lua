@@ -200,9 +200,11 @@ function Library:CreateWindow(title)
             Tab.Btn.TextColor3 = Color3.fromRGB(255, 255, 255)
         end)
 
-        Tab.Btn = TabBtn; Tab.Page = Page
+        Tab.Btn = TabBtn
+        Tab.Page = Page
         table.insert(Window.Tabs, Tab)
 
+        -- [ MÉTODO 1: ADICIONAR TOGGLES ]
         function Tab:AddToggle(text, state, callback)
             local Frame = Instance.new("Frame", Page)
             Frame.Size = UDim2.new(1, 0, 0, 45)
@@ -241,7 +243,7 @@ function Library:CreateWindow(title)
             end)
         end
 
-        -- Função para criar Botões (Faltava isso!)
+        -- [ MÉTODO 2: ADICIONAR BOTÕES (CORRIGIDO) ]
         function Tab:AddButton(text, callback)
             local Frame = Instance.new("Frame", Page)
             Frame.Size = UDim2.new(1, 0, 0, 40)
@@ -256,7 +258,7 @@ function Library:CreateWindow(title)
             Btn.Font = Enum.Font.GothamMedium
             Btn.TextSize = 13
 
-            -- Efeito Hover
+            -- Efeitos Hover & Click
             Btn.MouseEnter:Connect(function()
                 TweenService:Create(Frame, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(25, 25, 35)}):Play()
             end)
@@ -264,7 +266,6 @@ function Library:CreateWindow(title)
                 TweenService:Create(Frame, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(18, 18, 24)}):Play()
             end)
             
-            -- Efeito de Clique
             Btn.MouseButton1Click:Connect(function()
                 local fx = TweenService:Create(Frame, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(110, 80, 255)})
                 fx:Play()
@@ -286,6 +287,11 @@ function Library:CreateWindow(title)
         end
     end
 
+    function Window:Destroy()
+        sg:Destroy()
+    end
+
     return Window
 end
+
 return Library
