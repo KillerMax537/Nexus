@@ -1,78 +1,50 @@
---[[
-    Nexus ABD Hub - Official Bootstrapper
-    Developer: KillerMax537
-]]
-
+-- Main.lua
 local getgenv = getgenv or function() return shared end
-local GITHUB_REPO = "https://raw.githubusercontent.com/KillerMax537/Nexus/main/"
 
-getgenv().Nexus = {
-    Config = {
-        MasterActive = false,
-        RecastDelay = 0.15
-    },
-    Connections = {},
-    Require = function(path)
-        local url = GITHUB_REPO .. path
-        local success, result = pcall(function()
-            return loadstring(game:HttpGet(url))()
-        end)
-        if not success then
-            warn("[Nexus ABD] Failed to load module: " + tostring(path))
-        end
-        return result
-    end
-}
+-- Carrega o ambiente primeiro (define Nexus e carrega configs)
+local envModule = loadstring(game:HttpGet("https://raw.githubusercontent.com/KillerMax537/Nexus/main/src/Core/Environment.lua"))()
+if not envModule then return warn("Environment failed") end
 
 local Nexus = getgenv().Nexus
 
-Nexus.UI = Nexus.Require("src/Core/UILibrary.lua")
-Nexus.Input = Nexus.Require("src/Core/Input.lua")
+-- Carrega os módulos core
+Nexus.Input = loadstring(game:HttpGet("https://raw.githubusercontent.com/KillerMax537/Nexus/main/src/Core/Input.lua"))()
+Nexus.UI = loadstring(game:HttpGet("https://raw.githubusercontent.com/KillerMax537/Nexus/main/src/Core/UILibrary.lua"))()
 
-if not Nexus.UI then
-    return warn("[Nexus ABD] UI Library failed to load.")
+if not Nexus.Input or not Nexus.UI then
+    return warn("Core modules failed")
 end
 
+-- Cria a janela
 Nexus.Window = Nexus.UI:CreateWindow("NEXUS")
-Nexus.Window:CreateConsoleTab("Console", "🖥️")
 
-local TabMain = Nexus.Window:CreateTab("Automations", "⚡")
-
-TabMain:AddToggle("Master Auto-Fishing (Fisher + Cast)", Nexus.Config.MasterActive, function(state)
-    Nexus.Config.MasterActive = state
-    if not state and Nexus.Input.IsHolding() then
-        Nexus.Input.SetHold(false)
+-- Carrega as abas (a ordem importa para o console)
+local tabs = {
+    "src/Tabs/Logs.lua",
+    "src/Tabs/Automations.lua",
+    "src/Tabs/Settings.lua"
+}
+for _, path in ipairs(tabs) do
+    local success, err = pcall(function()
+        return loadstring(game:HttpGet("https://raw.githubusercontent.com/KillerMax537/Nexus/main/" .. path))()
+    end)
+    if not success then
+        warn("Failed to load tab: " .. path .. " - " .. tostring(err))
     end
-    Nexus.Notify("Master Auto-Fishing is " .. (state and "ACTIVE" or "OFF"), 2)
-    if Nexus.Log then Nexus.Log("Master Toggle changed to: " .. tostring(state)) end
+end
+
+-- Inicia o módulo de pesca
+local fishingOk = pcall(function()
+    return loadstring(game:HttpGet("https://raw.githubusercontent.com/KillerMax537/Nexus/main/src/Features/MasterFishing.lua"))()
 end)
+if not fishingOk then
+    Nexus.Log("Fishing module failed to load.")
+else
+    Nexus.Log("Fishing module loaded.")
+end
 
-local TabSettings = Nexus.Window:CreateTab("Settings", "⚙️")
-
-TabSettings:AddButton("Unload Hub", function()
-    Nexus.Notify("Unloading Nexus ABD...", 2)
-    task.wait(0.5)
-
-    if Nexus.Input and Nexus.Input.IsHolding() then
-        Nexus.Input.SetHold(false)
-    end
-
-    for _, conn in ipairs(Nexus.Connections) do
-        if typeof(conn) == "RBXScriptConnection" then
-            conn:Disconnect()
-        end
-    end
-    table.clear(Nexus.Connections)
-
-    if Nexus.Window then
-        Nexus.Window:Destroy()
-    end
-
-    getgenv().Nexus = nil
-end)
-
-Nexus.Require("src/Features/MasterFishing.lua")
-
+-- Inicializa a primeira aba
 Nexus.Window:Init()
-Nexus.Notify("Welcome to Nexus ABD Hub!", 3)
-if Nexus.Log then Nexus.Log("Hub loaded successfully.") end
+
+Nexus.Notify("Nexus ABD Hub Loaded!", 3)
+Nexus.Log("Hub initialized.")

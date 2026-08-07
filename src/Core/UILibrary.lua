@@ -1,3 +1,4 @@
+-- src/Core/UILibrary.lua
 local Library = {}
 local CoreGui = game:GetService("CoreGui")
 local TweenService = game:GetService("TweenService")
@@ -15,6 +16,7 @@ function Library:CreateWindow(title)
     sg.ResetOnSpawn = false
     sg.Parent = CoreGui
 
+    -- Intro overlay
     local IntroOverlay = Instance.new("Frame", sg)
     IntroOverlay.Size = UDim2.new(1, 0, 1, 0)
     IntroOverlay.BackgroundColor3 = Color3.fromRGB(10, 5, 20)
@@ -43,6 +45,7 @@ function Library:CreateWindow(title)
         IntroOverlay:Destroy()
     end)
 
+    -- Toggle button
     local ToggleBtn = Instance.new("TextButton", sg)
     ToggleBtn.Size = UDim2.new(0, 45, 0, 45)
     ToggleBtn.Position = UDim2.new(0.5, -22, 0, 15)
@@ -53,7 +56,7 @@ function Library:CreateWindow(title)
     ToggleBtn.TextSize = 22
     Instance.new("UICorner", ToggleBtn).CornerRadius = UDim.new(1, 0)
     Instance.new("UIStroke", ToggleBtn).Color = Color3.fromRGB(150, 50, 255)
-    
+
     local tbDragging, tbStartPos, tbStartInput
     ToggleBtn.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
@@ -76,6 +79,7 @@ function Library:CreateWindow(title)
         end
     end)
 
+    -- Main frame
     local Main = Instance.new("Frame", sg)
     Main.Size = UDim2.new(0, 620, 0, 400)
     Main.Position = UDim2.new(0.5, -310, 0.5, -200)
@@ -89,10 +93,11 @@ function Library:CreateWindow(title)
     MainStroke.Color = Color3.fromRGB(130, 60, 255)
     MainStroke.Thickness = 1.5
 
+    -- Header (draggable)
     local Header = Instance.new("Frame", Main)
     Header.Size = UDim2.new(1, 0, 0, 45)
     Header.BackgroundColor3 = Color3.fromRGB(8, 6, 14)
-    
+
     local TitleLbl = Instance.new("TextLabel", Header)
     TitleLbl.Size = UDim2.new(1, -20, 1, 0)
     TitleLbl.Position = UDim2.new(0, 20, 0, 0)
@@ -120,6 +125,7 @@ function Library:CreateWindow(title)
         end
     end)
 
+    -- Resize grip
     local ResizeGrip = Instance.new("TextButton", Main)
     ResizeGrip.Size = UDim2.new(0, 18, 0, 18)
     ResizeGrip.Position = UDim2.new(1, -18, 1, -18)
@@ -147,6 +153,7 @@ function Library:CreateWindow(title)
         end
     end)
 
+    -- Notifications
     local NotifContainer = Instance.new("Frame", sg)
     NotifContainer.Size = UDim2.new(0, 250, 1, -50)
     NotifContainer.Position = UDim2.new(1, -270, 0, 25)
@@ -183,16 +190,18 @@ function Library:CreateWindow(title)
     end
     env.Nexus.Notify = function(t, d) Window:Notify(t, d) end
 
+    -- Body
     local Body = Instance.new("Frame", Main)
     Body.Size = UDim2.new(1, 0, 1, -45)
     Body.Position = UDim2.new(0, 0, 0, 45)
     Body.BackgroundTransparency = 1
 
+    -- Sidebar
     local Sidebar = Instance.new("Frame", Body)
     Sidebar.Size = UDim2.new(0, 160, 1, 0)
     Sidebar.BackgroundColor3 = Color3.fromRGB(10, 8, 18)
     Sidebar.BorderSizePixel = 0
-    
+
     local TabContainer = Instance.new("ScrollingFrame", Sidebar)
     TabContainer.Size = UDim2.new(1, 0, 1, -10)
     TabContainer.Position = UDim2.new(0, 0, 0, 10)
@@ -202,6 +211,7 @@ function Library:CreateWindow(title)
     TabListLayout.Padding = UDim.new(0, 5)
     TabListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 
+    -- Pages
     local Pages = Instance.new("Frame", Body)
     Pages.Size = UDim2.new(1, -160, 1, 0)
     Pages.Position = UDim2.new(0, 160, 0, 0)
@@ -391,4 +401,5 @@ function Library:CreateWindow(title)
 
     return Window
 end
+
 return Library
