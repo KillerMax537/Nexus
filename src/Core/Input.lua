@@ -1,37 +1,48 @@
 -- Arquivo: src/Core/Input.lua
 local Input = {}
+local VIM = game:GetService("VirtualInputManager")
+local Workspace = game:GetService("Workspace")
 
 local holding = false
 
 function Input.SetHold(state)
     if holding == state then return end
     holding = state
-    
     if state then
-        -- Segura o botão esquerdo do mouse
-        if mouse1press then mouse1press() end
+        if mouse1press then mouse1press() else VIM:SendMouseButtonEvent(0,0,0,true,game,0) end
     else
-        -- Solta o botão esquerdo do mouse
-        if mouse1release then mouse1release() end
+        if mouse1release then mouse1release() else VIM:SendMouseButtonEvent(0,0,0,false,game,0) end
     end
 end
 
 function Input.Click()
-    -- Dá um clique perfeito
+    -- Clique rápido no hardware (mais confiável)
     if mouse1click then
         mouse1click()
     else
-        -- Fallback seguro
-        if mouse1press and mouse1release then
-            mouse1press()
-            task.wait(0.01)
-            mouse1release()
-        end
+        VIM:SendMouseButtonEvent(0,0,0,true,game,0)
+        task.wait(0.01)
+        VIM:SendMouseButtonEvent(0,0,0,false,game,0)
     end
 end
 
-function Input.IsHolding() 
-    return holding 
+function Input.WorldClick()
+    -- Mira no topo (céu/água) para arremessar
+    local cam = Workspace.CurrentCamera
+    local cx = cam.ViewportSize.X / 2
+    local cy = 50 -- Topo da tela
+    
+    if mouse1click then
+        -- Move o mouse e clica
+        mousemoveabs(cx, cy)
+        task.wait(0.05)
+        mouse1click()
+    else
+        VIM:SendMouseButtonEvent(cx, cy, 0, true, game, 0)
+        task.wait(0.05)
+        VIM:SendMouseButtonEvent(cx, cy, 0, false, game, 0)
+    end
 end
 
+function Input.IsHolding() return holding end
 return Input
