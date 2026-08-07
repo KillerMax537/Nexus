@@ -4,50 +4,49 @@ local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
 local Nexus = env.Nexus
-
-local function GetAndEquipRod()
-    local char = LocalPlayer.Character
-    if not char then return nil end
-    
-    -- Se já estiver na mão, perfeito
-    local equipped = char:FindFirstChildOfClass("Tool")
-    if equipped then return equipped end
-    
-    -- Se não, puxa da mochila
-    local backpack = LocalPlayer:FindFirstChild("Backpack")
-    if backpack then
-        local tool = backpack:FindFirstChildOfClass("Tool")
-        if tool then
-            tool.Parent = char
-            task.wait(0.5)
-            return tool
-        end
-    end
-    return nil
-end
+local Input = Nexus.Input
+local isCasting = false
 
 local function PerformCast()
-    if not Nexus.Config.Enabled or not Nexus.Config.AutoCast then return end
+    if not Nexus.Config.Enabled or not Nexus.Config.AutoCast or isCasting then return end
     if LocalPlayer:GetAttribute("Fishing") == true then return end
     
-    task.wait(Nexus.Config.RecastDelay)
+    isCasting = true
+    task.wait(Nexus.Config.RecastDelay or 0.15)
     
-    local rod = GetAndEquipRod()
-    if rod then
-        Nexus.UI:Notify("Lançando vara...", 1)
-        -- O método mais robusto: Activate() força a ferramenta a lançar
-        pcall(function() rod:Activate() end)
-    else
-        Nexus.UI:Notify("Vara não encontrada!", 2)
+    while Nexus.Config.Enabled and Nexus.Config.AutoCast and LocalPlayer:GetAttribute("Fishing") ~= true do
+        -- Verifica apenas se você está segurando uma ferramenta
+        local hasToolEquipped = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Tool")
+        
+        if hasToolEquipped then
+            Nexus.Notify("🎣 Lançando isca...", 2)
+            
+            -- Clique na tela!
+            Input.WorldClick()
+            
+            -- Aguarda até 3 segundos pra confirmar o arremesso
+            local attempts = 0
+            while attempts < 30 and LocalPlayer:GetAttribute("Fishing") ~= true do
+                task.wait(0.1)
+                attempts = attempts + 1
+            end
+        else
+            -- Se não estiver na mão, avisa na UI até você colocar!
+            Nexus.Notify("⚠️ Equipe a Vara de Pesca na mão!", 3)
+            task.wait(3)
+        end
     end
+    isCasting = false
 end
 
-LocalPlayer:GetAttributeChangedSignal("Fishing"):Connect(function()
+local attrConn = LocalPlayer:GetAttributeChangedSignal("Fishing"):Connect(function()
     if LocalPlayer:GetAttribute("Fishing") == false then 
         task.spawn(PerformCast) 
     end
 end)
+table.insert(Nexus.Connections, attrConn)
 
+-- Tentativa inicial
 if LocalPlayer:GetAttribute("Fishing") == false then 
     task.spawn(PerformCast) 
 end
