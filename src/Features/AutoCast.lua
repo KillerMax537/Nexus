@@ -12,28 +12,30 @@ local function PerformCast()
     if LocalPlayer:GetAttribute("Fishing") == true then return end
     
     isCasting = true
+    
+    -- Delay rapidíssimo que você pediu (0.15s)
     task.wait(Nexus.Config.RecastDelay or 0.15)
     
     while Nexus.Config.Enabled and Nexus.Config.AutoCast and LocalPlayer:GetAttribute("Fishing") ~= true do
-        -- Verifica apenas se você está segurando uma ferramenta
-        local hasToolEquipped = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Tool")
         
-        if hasToolEquipped then
-            Nexus.Notify("🎣 Lançando isca...", 2)
+        -- Checa se a vara está na mão
+        local char = LocalPlayer.Character
+        local hasRod = char and char:FindFirstChildOfClass("Tool")
+        
+        if hasRod then
+            if env.Nexus.Notify then env.Nexus.Notify("🎣 Lançando isca...", 2) end
             
-            -- Clique na tela!
-            Input.WorldClick()
+            -- Clique absoluto (O mesmo que você testou e funcionou)
+            Input.Click()
             
-            -- Aguarda até 3 segundos pra confirmar o arremesso
             local attempts = 0
-            while attempts < 30 and LocalPlayer:GetAttribute("Fishing") ~= true do
+            while attempts < 25 and LocalPlayer:GetAttribute("Fishing") ~= true do
                 task.wait(0.1)
                 attempts = attempts + 1
             end
         else
-            -- Se não estiver na mão, avisa na UI até você colocar!
-            Nexus.Notify("⚠️ Equipe a Vara de Pesca na mão!", 3)
-            task.wait(3)
+            if env.Nexus.Notify then env.Nexus.Notify("⚠️ Equipe a Vara na mão!", 3) end
+            task.wait(2)
         end
     end
     isCasting = false
@@ -46,7 +48,6 @@ local attrConn = LocalPlayer:GetAttributeChangedSignal("Fishing"):Connect(functi
 end)
 table.insert(Nexus.Connections, attrConn)
 
--- Tentativa inicial
 if LocalPlayer:GetAttribute("Fishing") == false then 
     task.spawn(PerformCast) 
 end
