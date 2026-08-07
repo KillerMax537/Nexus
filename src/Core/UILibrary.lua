@@ -241,6 +241,39 @@ function Library:CreateWindow(title)
             end)
         end
 
+        -- Função para criar Botões (Faltava isso!)
+        function Tab:AddButton(text, callback)
+            local Frame = Instance.new("Frame", Page)
+            Frame.Size = UDim2.new(1, 0, 0, 40)
+            Frame.BackgroundColor3 = Color3.fromRGB(18, 18, 24)
+            Instance.new("UICorner", Frame).CornerRadius = UDim.new(0, 6)
+
+            local Btn = Instance.new("TextButton", Frame)
+            Btn.Size = UDim2.new(1, 0, 1, 0)
+            Btn.BackgroundTransparency = 1
+            Btn.Text = text
+            Btn.TextColor3 = Color3.fromRGB(220, 220, 220)
+            Btn.Font = Enum.Font.GothamMedium
+            Btn.TextSize = 13
+
+            -- Efeito Hover
+            Btn.MouseEnter:Connect(function()
+                TweenService:Create(Frame, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(25, 25, 35)}):Play()
+            end)
+            Btn.MouseLeave:Connect(function()
+                TweenService:Create(Frame, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(18, 18, 24)}):Play()
+            end)
+            
+            -- Efeito de Clique
+            Btn.MouseButton1Click:Connect(function()
+                local fx = TweenService:Create(Frame, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(110, 80, 255)})
+                fx:Play()
+                fx.Completed:Wait()
+                TweenService:Create(Frame, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(18, 18, 24)}):Play()
+                callback()
+            end)
+        end
+
         return Tab
     end
 
